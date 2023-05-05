@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.IO.Compression;
 using System.Drawing;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace UdfCevir
 {
@@ -124,56 +125,67 @@ namespace UdfCevir
 
         private void button2_Click(object sender, EventArgs e)
         {
-            string xmlContent = null;
-
-            xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> \r\n\r\n<template format_id=\"1.8\" >\r\n<content><![CDATA[";
-            xmlContent += plainText;
-            xmlContent +=
-                "\n]]></content><properties><pageFormat mediaSizeName=\"1\" leftMargin=\"42.525000000000006\" rightMargin=\"42.525000000000006\" topMargin=\"42.525000000000006\" bottomMargin=\"42.52500000000006\" paperOrientation=\"1\" headerFOffset=\"20.0\" footerFOffset=\"20.0\" /></properties>\r\n<elements resolver=\"hvl-default\" >";
-
-            int startOffset = 0;
-
-            //Paragraflar
-            foreach (var p in paragraf)
+            SaveFileDialog save = new SaveFileDialog();
+            save.OverwritePrompt = true;
+            save.CreatePrompt = false;
+            save.InitialDirectory = @"%USERPROFILE%\Desktop\";
+            save.Title = "UDF Dosyaları";
+            save.DefaultExt = "UDF";
+            save.Filter = "UDF Dosyaları (*.UDF)|*.UDF|Tüm Dosyalar(*.*)|*.*";
+            if (save.ShowDialog() == DialogResult.OK)
             {
+                string xmlContent = null;
+
+                xmlContent =
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\" ?> \r\n\r\n<template format_id=\"1.8\" >\r\n<content><![CDATA[";
+                xmlContent += plainText;
                 xmlContent +=
-                    $"<paragraph Alignment=\"{p.Alignment}\"><content ";
+                    "\n]]></content><properties><pageFormat mediaSizeName=\"1\" leftMargin=\"42.525000000000006\" rightMargin=\"42.525000000000006\" topMargin=\"42.525000000000006\" bottomMargin=\"42.52500000000006\" paperOrientation=\"1\" headerFOffset=\"20.0\" footerFOffset=\"20.0\" /></properties>\r\n<elements resolver=\"hvl-default\" >";
 
-                if (p.Bold)
-                    xmlContent += " bold=\"true\"";
-                if (p.Italic)
-                    xmlContent += " italic=\"true\"";
-                if (p.Underline)
-                    xmlContent += " underline=\"true\"";
+                int startOffset = 0;
 
-                xmlContent += $" startOffset=\"{startOffset}\" length=\"{p.KarakterSayisi + 1}\" /></paragraph>";
-                startOffset = startOffset + p.KarakterSayisi + 1;
-            }
-
-
-            //Belgeyi Kapat
-            xmlContent +=
-                "</elements>\r\n<styles><style name=\"default\" description=\"Geçerli\" family=\"Dialog\" size=\"12\" bold=\"false\" italic=\"false\" FONT_ATTRIBUTE_KEY=\"javax.swing.plaf.FontUIResource[family=Dialog,name=Dialog,style=plain,size=12]\" foreground=\"-13421773\" /><style name=\"hvl-default\" family=\"Times New Roman\" size=\"12\" description=\"Gövde\" /></styles>\r\n</template>";
-            // 'udfFilePath' adında bir dosya oluşturun
-
-            // MessageBox.Show(xmlContent);
-
-            string udfFilePath = "file.udf";
-
-            // ZipArchive oluşturun
-            using (FileStream zipStream = new FileStream(udfFilePath, FileMode.Create))
-            using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
-            {
-                // content.xml dosyasını ZipArchive'e ekleyin
-                ZipArchiveEntry contentXmlEntry = archive.CreateEntry("content.xml");
-                using (StreamWriter writer = new StreamWriter(contentXmlEntry.Open()))
+                //Paragraflar
+                foreach (var p in paragraf)
                 {
-                    writer.Write(xmlContent);
-                }
-            }
+                    xmlContent +=
+                        $"<paragraph Alignment=\"{p.Alignment}\"><content ";
 
-            // dosyayı kaydet
-            File.WriteAllBytes(udfFilePath, File.ReadAllBytes(udfFilePath));
+                    if (p.Bold)
+                        xmlContent += " bold=\"true\"";
+                    if (p.Italic)
+                        xmlContent += " italic=\"true\"";
+                    if (p.Underline)
+                        xmlContent += " underline=\"true\"";
+
+                    xmlContent += $" startOffset=\"{startOffset}\" length=\"{p.KarakterSayisi + 1}\" /></paragraph>";
+                    startOffset = startOffset + p.KarakterSayisi + 1;
+                }
+
+
+                //Belgeyi Kapat
+                xmlContent +=
+                    "</elements>\r\n<styles><style name=\"default\" description=\"Geçerli\" family=\"Dialog\" size=\"12\" bold=\"false\" italic=\"false\" FONT_ATTRIBUTE_KEY=\"javax.swing.plaf.FontUIResource[family=Dialog,name=Dialog,style=plain,size=12]\" foreground=\"-13421773\" /><style name=\"hvl-default\" family=\"Times New Roman\" size=\"12\" description=\"Gövde\" /></styles>\r\n</template>";
+                // 'udfFilePath' adında bir dosya oluşturun
+
+                // MessageBox.Show(xmlContent);
+
+                string udfFilePath = save.FileName;
+
+                // ZipArchive oluşturun
+                using (FileStream zipStream = new FileStream(udfFilePath, FileMode.Create))
+                using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+                {
+                    // content.xml dosyasını ZipArchive'e ekleyin
+                    ZipArchiveEntry contentXmlEntry = archive.CreateEntry("content.xml");
+                    using (StreamWriter writer = new StreamWriter(contentXmlEntry.Open()))
+                    {
+                        writer.Write(xmlContent);
+                    }
+                }
+
+                // dosyayı kaydet
+                File.WriteAllBytes(udfFilePath, File.ReadAllBytes(udfFilePath));
+            }
         }
     }
 }
